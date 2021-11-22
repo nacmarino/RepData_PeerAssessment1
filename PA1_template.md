@@ -5,15 +5,14 @@ output:
     keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.path = 'figures/')
-```
+
 
 ## Loading and preprocessing the data
 
 Loading the packages to analyze the data.
 
-```{r}
+
+```r
 # loading packages
 library(tidyverse)
 library(lattice)
@@ -22,31 +21,69 @@ library(fs)
 
 Creating temporary folder to store the figures.
 
-```{r}
+
+```r
 dir_create(path = 'figures/')
 ```
 
 Loading the dataset.
 
-```{r}
+
+```r
 # loading the data
 df <- read_csv(file = 'activity.csv')
 df
+```
+
+```
+## # A tibble: 17,568 x 3
+##    steps date       interval
+##    <dbl> <date>        <dbl>
+##  1    NA 2012-10-01        0
+##  2    NA 2012-10-01        5
+##  3    NA 2012-10-01       10
+##  4    NA 2012-10-01       15
+##  5    NA 2012-10-01       20
+##  6    NA 2012-10-01       25
+##  7    NA 2012-10-01       30
+##  8    NA 2012-10-01       35
+##  9    NA 2012-10-01       40
+## 10    NA 2012-10-01       45
+## # ... with 17,558 more rows
 ```
 
 ## What is mean total number of steps taken per day?
 
 1. Calculate the total number of steps taken per day
 
-```{r}
+
+```r
 df %>% 
   group_by(date) %>% 
   summarise(total_steps = sum(steps, na.rm = TRUE))
 ```
 
+```
+## # A tibble: 61 x 2
+##    date       total_steps
+##    <date>           <dbl>
+##  1 2012-10-01           0
+##  2 2012-10-02         126
+##  3 2012-10-03       11352
+##  4 2012-10-04       12116
+##  5 2012-10-05       13294
+##  6 2012-10-06       15420
+##  7 2012-10-07       11015
+##  8 2012-10-08           0
+##  9 2012-10-09       12811
+## 10 2012-10-10        9900
+## # ... with 51 more rows
+```
+
 2. Make a histogram of the total number of steps taken each day
 
-```{r fig.align='center', fig.width=8, fig.height=5}
+
+```r
 df %>% 
   group_by(date) %>% 
   summarise(total_steps = sum(steps, na.rm = TRUE)) %>% 
@@ -54,11 +91,14 @@ df %>%
   hist(x = ., main = 'Total number of step taken each day', xlab = 'Total number of steps')
 ```
 
+<img src="figures/unnamed-chunk-5-1.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" style="display: block; margin: auto;" />
+
 3. Calculate and report the mean and median of the total number of steps taken per day
 
 For each day.
 
-```{r fig.align='center', fig.width=8, fig.height=5}
+
+```r
 df %>% 
   group_by(date) %>% 
   summarise(
@@ -74,9 +114,12 @@ df %>%
   theme(strip.text = element_text(face = 'bold'))
 ```
 
+<img src="figures/unnamed-chunk-6-1.png" title="plot of chunk unnamed-chunk-6" alt="plot of chunk unnamed-chunk-6" style="display: block; margin: auto;" />
+
 Across all days.
 
-```{r}
+
+```r
 df %>% 
   summarise(
     'Mean'    = mean(steps, na.rm = TRUE),
@@ -95,12 +138,15 @@ df %>%
   )
 ```
 
+![plot of chunk unnamed-chunk-7](figures/unnamed-chunk-7-1.png)
+
 
 ## What is the average daily activity pattern?
 
 1. Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-```{r fig.align='center', fig.width=8, fig.height=5}
+
+```r
 df %>% 
   group_by(interval) %>% 
   summarise(
@@ -112,17 +158,27 @@ df %>%
   theme_minimal()
 ```
 
+<img src="figures/unnamed-chunk-8-1.png" title="plot of chunk unnamed-chunk-8" alt="plot of chunk unnamed-chunk-8" style="display: block; margin: auto;" />
+
 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 Interval 835.
 
-```{r}
+
+```r
 df %>% 
   group_by(interval) %>% 
   summarise(
     mean_steps   = mean(steps, na.rm = TRUE)
   ) %>% 
   slice_max(n = 1, order_by = mean_steps)
+```
+
+```
+## # A tibble: 1 x 2
+##   interval mean_steps
+##      <dbl>      <dbl>
+## 1      835       206.
 ```
 
 ## Imputing missing values
@@ -132,28 +188,54 @@ df %>%
 
 The total number of missing values per column is shown below.
 
-```{r}
+
+```r
 df %>% 
   is.na() %>% 
   colSums
+```
+
+```
+##    steps     date interval 
+##     2304        0        0
 ```
 
 2. Devise a strategy for filling in all of the missing values in the dataset
 
 Inputting the mean values for missing data.
 
-```{r}
+
+```r
 df %>% 
   group_by(interval) %>% 
   mutate(steps = ifelse(test = is.na(steps), 
                         yes = round(x = mean(steps, na.rm = TRUE), digits = 0), no = steps))
 ```
 
+```
+## # A tibble: 17,568 x 3
+## # Groups:   interval [288]
+##    steps date       interval
+##    <dbl> <date>        <dbl>
+##  1     2 2012-10-01        0
+##  2     0 2012-10-01        5
+##  3     0 2012-10-01       10
+##  4     0 2012-10-01       15
+##  5     0 2012-10-01       20
+##  6     2 2012-10-01       25
+##  7     1 2012-10-01       30
+##  8     1 2012-10-01       35
+##  9     0 2012-10-01       40
+## 10     1 2012-10-01       45
+## # ... with 17,558 more rows
+```
+
 3. Create a new dataset that is equal to the original dataset but with the missing data filled in
 
 Creating a new dataset with inputed data.
 
-```{r}
+
+```r
 df_imputed <- df %>% 
   group_by(interval) %>% 
   mutate(steps = ifelse(test = is.na(steps), 
@@ -162,11 +244,29 @@ df_imputed <- df %>%
 df_imputed
 ```
 
+```
+## # A tibble: 17,568 x 3
+##    steps date       interval
+##    <dbl> <date>        <dbl>
+##  1     2 2012-10-01        0
+##  2     0 2012-10-01        5
+##  3     0 2012-10-01       10
+##  4     0 2012-10-01       15
+##  5     0 2012-10-01       20
+##  6     2 2012-10-01       25
+##  7     1 2012-10-01       30
+##  8     1 2012-10-01       35
+##  9     0 2012-10-01       40
+## 10     1 2012-10-01       45
+## # ... with 17,558 more rows
+```
+
 4. Make a histogram of the total number of steps taken each day and calculate and report the mean and median total number of steps taken per day.
 
 Histogram of the total number of steps taken each day using the inputed data.
 
-```{r fig.align='center', fig.width=8, fig.height=5}
+
+```r
 df_imputed %>% 
   group_by(date) %>% 
   summarise(total_steps = sum(steps, na.rm = TRUE)) %>% 
@@ -174,9 +274,12 @@ df_imputed %>%
   hist(x = ., main = 'Total number of step taken each day (imputed)', xlab = 'Total number of steps')
 ```
 
+<img src="figures/unnamed-chunk-13-1.png" title="plot of chunk unnamed-chunk-13" alt="plot of chunk unnamed-chunk-13" style="display: block; margin: auto;" />
+
 Mean and median total number of steps taken per day using the inputed data.
 
-```{r}
+
+```r
 df_imputed %>% 
   summarise(
     'Mean'    = mean(steps, na.rm = TRUE),
@@ -194,6 +297,8 @@ df_imputed %>%
     y        = 'Number of steps taken per day'
   )
 ```
+
+![plot of chunk unnamed-chunk-14](figures/unnamed-chunk-14-1.png)
 
 a. Do these values differ from the estimates from the first part of the assignment?
 
@@ -207,7 +312,8 @@ Data on the total number of steps taken each day became more normally distribute
 
 1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day
 
-```{r}
+
+```r
 df <- df %>% 
   mutate(
     wweek = weekdays(date),
@@ -217,9 +323,27 @@ df <- df %>%
 df
 ```
 
+```
+## # A tibble: 17,568 x 4
+##    steps date       interval wweek  
+##    <dbl> <date>        <dbl> <chr>  
+##  1    NA 2012-10-01        0 weekday
+##  2    NA 2012-10-01        5 weekday
+##  3    NA 2012-10-01       10 weekday
+##  4    NA 2012-10-01       15 weekday
+##  5    NA 2012-10-01       20 weekday
+##  6    NA 2012-10-01       25 weekday
+##  7    NA 2012-10-01       30 weekday
+##  8    NA 2012-10-01       35 weekday
+##  9    NA 2012-10-01       40 weekday
+## 10    NA 2012-10-01       45 weekday
+## # ... with 17,558 more rows
+```
+
 2. Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
-```{r fig.align='center', fig.width=8, fig.height=5}
+
+```r
 ## summarizing the data
 df_to_plot <- df %>% 
   group_by(interval, wweek) %>% 
@@ -231,3 +355,5 @@ df_to_plot <- df %>%
 ## creating the plot
 xyplot(mean_steps ~ interval | wweek, data = df_to_plot, type = 'l', ylab = 'Number of steps', xlab = 'Interval', layout = c(1, 2))
 ```
+
+<img src="figures/unnamed-chunk-16-1.png" title="plot of chunk unnamed-chunk-16" alt="plot of chunk unnamed-chunk-16" style="display: block; margin: auto;" />
